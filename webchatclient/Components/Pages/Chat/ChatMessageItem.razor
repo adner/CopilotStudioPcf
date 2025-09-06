@@ -26,11 +26,6 @@ else if (Message.Role == ChatRole.Assistant)
                 <div class="assistant-message-header" style="color: white; font-weight: bold;">🤖 Copilot Studio Agent</div>
                 <div class="assistant-message-text">
                     <assistant-message markdown="@text"></assistant-message>
-
-                    @foreach (var citation in citations ?? [])
-                    {
-                        <ChatCitation File="@citation.File" PageNumber="@citation.Page" Quote="@citation.Quote" />
-                    }
                 </div>
             </div>
         }
@@ -57,6 +52,50 @@ else if (Message.Role == ChatRole.Assistant)
                                 width="100%" height="630" frameborder="0"
                             style="border-radius: 8px; background: #0f0f23;">
                         </iframe>
+                    </div>
+                </div>
+            }
+            else if (ShouldRenderDataverseMcpConnectionCard(cardJson))
+            {
+                <div class="adaptive-card-container">
+                    <div class="dataverse-connection-card">
+                        <div class="connection-header">
+                            <h3>Connect to continue</h3>
+                            <p>I'll use your credentials to connect and to get the information you're looking for.</p>
+                        </div>
+                        
+                        <div class="service-info">
+                            <div class="service-icon">
+                                <img src="https://conn-afd-prod-endpoint-bmc9bqahasf3grgk.b01.azurefd.net/v1.0.1768/1.0.1768.4346/commondataserviceforapps/icon.png" 
+                                     alt="Microsoft Dataverse" width="32" height="32" />
+                            </div>
+                            <div class="service-name">
+                                <strong>Microsoft Dataverse</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="capabilities">
+                            <p><strong>This connection can:</strong></p>
+                            <p>- Dataverse MCP Server</p>
+                        </div>
+                        
+                        <div class="privacy-notice">
+                            <div class="warning-icon">
+                                <svg width="15" height="15" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4.5 5.5C4.5 5.22386 4.72386 5 5 5C5.27614 5 5.5 5.22386 5.5 5.5V7C5.5 7.27614 5.27614 7.5 5 7.5C4.72386 7.5 4.5 7.27614 4.5 7V5.5ZM5 2.75C4.58579 2.75 4.25 3.08579 4.25 3.5C4.25 3.91421 4.58579 4.25 5 4.25C5.41421 4.25 5.75 3.91421 5.75 3.5C5.75 3.08579 5.41421 2.75 5 2.75ZM0 5C0 2.23858 2.23858 0 5 0C7.76142 0 10 2.23858 10 5C10 7.76142 7.76142 10 5 10C2.23858 10 0 7.76142 0 5ZM5 1C2.79086 1 1 2.79086 1 5C1 7.20914 2.79086 9 5 9C7.20914 9 9 7.20914 9 5C9 2.79086 7.20914 1 5 1Z" fill="#424242"/>
+                                </svg>
+                            </div>
+                            <p>Connecting to other services with your credentials may expose your data to privacy and security risks. Once you connect, we'll remember your settings and use them next time.</p>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn-allow" @onclick="() => HandleConnectionResponse(true)">
+                                Allow
+                            </button>
+                            <button class="btn-cancel" @onclick="() => HandleConnectionResponse(false)">
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
             }
@@ -149,6 +188,64 @@ else if (Message.Role == ChatRole.Assistant)
                         actionElement.GetString() == "PlayDoom")
                     {
                         return true;
+                    }
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // Invalid JSON, don't render the card
+        }
+        
+        return false;
+    }
+
+    private bool ShouldRenderDataverseMcpConnectionCard(string cardJson)
+    {
+        try
+        {
+            using var jsonDoc = JsonDocument.Parse(cardJson);
+            var root = jsonDoc.RootElement;
+            
+            // Check for the specific structure of the Dataverse MCP Connection Card
+            if (root.TryGetProperty("body", out var bodyElement) && bodyElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var bodyItem in bodyElement.EnumerateArray())
+                {
+                    if (bodyItem.TryGetProperty("text", out var textElement))
+                    {
+                        var text = textElement.GetString();
+                        if (text != null && text.Contains("Dataverse MCP Server"))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            // Also check for Microsoft Dataverse in ColumnSet items
+            if (root.TryGetProperty("body", out var bodyArray) && bodyArray.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in bodyArray.EnumerateArray())
+                {
+                    if (item.TryGetProperty("type", out var typeElement) && 
+                        typeElement.GetString() == "ColumnSet" &&
+                        item.TryGetProperty("columns", out var columnsElement))
+                    {
+                        foreach (var column in columnsElement.EnumerateArray())
+                        {
+                            if (column.TryGetProperty("items", out var itemsElement))
+                            {
+                                foreach (var columnItem in itemsElement.EnumerateArray())
+                                {
+                                    if (columnItem.TryGetProperty("text", out var columnText) &&
+                                        columnText.GetString() == "Microsoft Dataverse")
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

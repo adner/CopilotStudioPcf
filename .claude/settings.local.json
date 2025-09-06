@@ -8,7 +8,14 @@
       "Bash(git read-tree:*)",
       "Bash(mkdir:*)",
       "Bash(cp:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git add:*)",
+      "Read(//c/Users/andre/Downloads/**)",
+      "Bash(dotnet run:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
