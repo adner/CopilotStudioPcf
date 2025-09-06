@@ -21,11 +21,17 @@ builder.Services
         return new CopilotClient(settings, s.GetRequiredService<IHttpClientFactory>(), logger, "mcs");
     });
 
-// Register the CopilotStudio IChatClient as the primary chat client
-builder.Services.AddChatClient(serviceProvider =>
+// Register CopilotStudioIChatClient as a singleton for direct access
+builder.Services.AddSingleton<CopilotStudioIChatClient>(serviceProvider =>
 {
     var copilotClient = serviceProvider.GetRequiredService<CopilotClient>();
     return new CopilotStudioIChatClient(copilotClient);
+});
+
+// Register the CopilotStudio IChatClient as the primary chat client with middleware
+builder.Services.AddChatClient(serviceProvider =>
+{
+    return serviceProvider.GetRequiredService<CopilotStudioIChatClient>();
 }).UseFunctionInvocation().UseLogging(); 
 
 // Needed for Copilot Studio authentication.

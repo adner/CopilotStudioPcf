@@ -1,7 +1,9 @@
 ﻿@page "/"
 @using System.ComponentModel
 @using Microsoft.Agents.Core.Models
+@using webchatclient.Services
 @inject IChatClient ChatClient
+@inject CopilotStudioIChatClient CopilotStudioClient
 @inject NavigationManager Nav
 @implements IDisposable
 
@@ -35,7 +37,6 @@
 
         // Add the user message to the conversation
         messages.Add(userMessage);
-        //chatSuggestions?.Clear();
         await chatInput!.FocusAsync();
 
         // Show loading state immediately
@@ -97,8 +98,39 @@
 
     private async Task OnAdaptiveCardInvokeAction(AdaptiveCardInvokeAction action)
     {
-        // Empty handler for OnSendMessage
-        await Task.CompletedTask;
+        isWaitingForResponse = true;
+        var responseText = new TextContent("");
+        currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
+        currentResponseCancellation = new();
+        
+        // Trigger UI update to show the spinner
+        StateHasChanged();
+
+        try
+        {
+            await foreach (var update in CopilotStudioClient.SendAdaptiveCardResponseToCopilotStudio(action))
+            {
+                if (isWaitingForResponse && !string.IsNullOrEmpty(update.Text))
+                {
+                    isWaitingForResponse = false;
+                }
+                
+                messages.AddMessages(update, filter: c => c is not TextContent);
+                responseText.Text += update.Text;
+                ChatMessageItem.NotifyChanged(currentResponseMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error if needed
+            isWaitingForResponse = false;
+            responseText.Text = $"Error processing action: {ex.Message}";
+        }
+        finally
+        {
+            isWaitingForResponse = false;
+            ChatMessageItem.NotifyChanged(currentResponseMessage);
+        }
     }
 
     public void Dispose()

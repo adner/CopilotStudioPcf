@@ -71,6 +71,58 @@ namespace webchatclient.Services
             };
         }
 
+        public async IAsyncEnumerable<ChatResponseUpdate> SendAdaptiveCardResponseToCopilotStudio(AdaptiveCardInvokeAction action)
+        {
+            string replyToId = "Hejsan";
+            var invoke = new Activity
+            {
+                Type = ActivityTypes.Invoke,          // invoke activity
+                Name = "connectors/consentCard",         // required for Adaptive Card actions
+                Value = new
+                {
+                    action = "Allow",
+                    id = "submit",
+                    shouldAwaitUserInput = true
+                    // If the incoming had extra fields (e.g., connectionName/state/correlationId),
+                    // include them here as well — some handlers REQUIRE them.
+                },
+                ReplyToId = replyToId,
+            };
+
+            var createdAt = DateTimeOffset.UtcNow;
+
+            await foreach (var activity in _copilotClient.AskQuestionAsync(invoke))
+            {
+                if (activity.Type == "message" && !string.IsNullOrEmpty(activity.Text))
+                {
+                    yield return new ChatResponseUpdate
+                    {
+                        CreatedAt = createdAt,
+                        Contents = [new TextContent(activity.Text)],
+                        Role = ChatRole.Assistant
+                    };
+                }
+                else if (activity.Type == "message" && activity.Attachments.Count == 1 && activity.Attachments[0].ContentType == "application/vnd.microsoft.card.adaptive")
+                {
+                    // Extract the adaptive card JSON and yield a function call to render it
+                    var adaptiveCardJson = JsonSerializer.Serialize(activity.Attachments[0].Content);
+
+                    yield return new ChatResponseUpdate
+                    {
+                        CreatedAt = createdAt,
+                        Contents = [new FunctionCallContent("RenderAdaptiveCardAsync", adaptiveCardJson)
+                        {
+                            Arguments = new Dictionary<string, object?>
+                            {
+                                ["adaptiveCardJson"] = adaptiveCardJson
+                            }
+                        }],
+                        Role = ChatRole.Assistant
+                    };
+                }
+            }
+        }
+
         public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var lastMessage = messages.LastOrDefault();
@@ -103,18 +155,18 @@ namespace webchatclient.Services
                     };
                 }
                 else if (activity.Type == "message" && activity.Attachments.Count == 1 && activity.Attachments[0].ContentType == "application/vnd.microsoft.card.adaptive")
-                { 
+                {
                     // Extract the adaptive card JSON and yield a function call to render it
                     var adaptiveCardJson = JsonSerializer.Serialize(activity.Attachments[0].Content);
-                    
+
                     yield return new ChatResponseUpdate
                     {
                         CreatedAt = createdAt,
-                        Contents = [new FunctionCallContent("RenderAdaptiveCardAsync", adaptiveCardJson) 
-                        { 
-                            Arguments = new Dictionary<string, object?> 
-                            { 
-                                ["adaptiveCardJson"] = adaptiveCardJson 
+                        Contents = [new FunctionCallContent("RenderAdaptiveCardAsync", adaptiveCardJson)
+                        {
+                            Arguments = new Dictionary<string, object?>
+                            {
+                                ["adaptiveCardJson"] = adaptiveCardJson,                           
                             }
                         }],
                         Role = ChatRole.Assistant
