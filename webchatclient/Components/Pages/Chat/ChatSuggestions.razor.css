@@ -1,0 +1,49 @@
+.suggestions {
+    text-align: right;
+    white-space: nowrap;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    display: flex;
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 5;
+}
+
+/* Style for individual suggestion buttons */
+.suggestions button {
+    background: linear-gradient(135deg, 
+        rgba(102, 126, 234, 0.1) 0%, 
+        rgba(118, 75, 162, 0.1) 50%, 
+        rgba(240, 147, 251, 0.1) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    
+    /* Subtle glow */
+    box-shadow: 
+        0 2px 10px rgba(102, 126, 234, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.suggestions button:hover {
+    background: linear-gradient(135deg, 
+        rgba(102, 126, 234, 0.2) 0%, 
+        rgba(118, 75, 162, 0.2) 50%, 
+        rgba(240, 147, 251, 0.2) 100%);
+    border-color: rgba(102, 126, 234, 0.5);
+    color: #ffffff;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 
+        0 6px 20px rgba(102, 126, 234, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.suggestions button:active {
+    transform: translateY(0) scale(1);
+}

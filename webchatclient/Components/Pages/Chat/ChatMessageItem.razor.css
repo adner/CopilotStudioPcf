@@ -1,0 +1,618 @@
+﻿.user-message {
+    align-self: flex-end;
+    min-width: 25%;
+    max-width: calc(100% - 5rem);
+    padding: 1rem;
+    border-radius: 8px;
+    color: #ffffff;
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+    font-weight: 400;
+    position: relative;
+    
+    /* Similar dark background to assistant but with blue tint */
+    background: linear-gradient(135deg, #0f0f35 0%, #1a1a3e 50%, #162162 100%);
+    
+    /* Blue matrix-style border instead of green */
+    border: 1px solid #4169ff;
+    
+    /* Blue glow effects instead of green */
+    box-shadow: 
+        0 0 20px rgba(65, 105, 255, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    
+    /* Blue text glow */
+    text-shadow: 0 0 10px rgba(65, 105, 255, 0.7);
+    
+    /* Matrix-style glow animation with blue colors */
+    animation: 
+        userMessageSlide 0.6s ease-out,
+        userMatrixPulse 3s ease-in-out infinite 0.6s;
+    
+    /* Typing effect for new messages */
+    overflow: hidden;
+}
+
+/* Blue matrix pulse animation for user messages */
+@keyframes userMatrixPulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(65, 105, 255, 0.3),
+            0 4px 15px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        border-color: #4169ff;
+    }
+    50% {
+        box-shadow: 
+            0 0 30px rgba(65, 105, 255, 0.6),
+            0 6px 20px rgba(0, 0, 0, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        border-color: #5588ff;
+    }
+}
+
+/* Blue animated border for user messages */
+.user-message::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #4169ff, #2244aa, #4169ff, #2244aa);
+    background-size: 400% 400%;
+    border-radius: 10px;
+    z-index: -1;
+    opacity: 0;
+    animation: userMatrixBorder 4s ease infinite 0.6s, userBorderFadeIn 0.2s ease-out 0.6s forwards;
+}
+
+@keyframes userMatrixBorder {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+@keyframes userBorderFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* Entrance animation */
+@keyframes userMessageSlide {
+    0% {
+        opacity: 0;
+        transform: translateX(30px) scale(0.9);
+        filter: blur(3px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* Hover effect for user messages */
+.user-message:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 0 25px rgba(65, 105, 255, 0.5),
+        0 6px 20px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    border-color: #5588ff;
+    transition: all 0.3s ease;
+}
+
+.assistant-message, .assistant-search {
+    display: grid;
+    grid-template-rows: min-content;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.25rem;
+    
+    /* Cool styling effects */
+    position: relative;
+    padding: 1rem;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    border: 1px solid #00ff41;
+    border-radius: 8px;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 65, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    
+    /* Matrix-style glow animation */
+    animation: matrixPulse 3s ease-in-out infinite;
+    
+    /* Typing effect for new messages */
+    overflow: hidden;
+}
+
+@keyframes matrixPulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(0, 255, 65, 0.3),
+            0 4px 15px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        border-color: #00ff41;
+    }
+    50% {
+        box-shadow: 
+            0 0 30px rgba(0, 255, 65, 0.6),
+            0 6px 20px rgba(0, 0, 0, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        border-color: #00ff88;
+    }
+}
+
+.assistant-message::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00ff41, #00aa2e, #00ff41, #00aa2e);
+    background-size: 400% 400%;
+    border-radius: 10px;
+    z-index: -1;
+    animation: matrixBorder 4s ease infinite;
+}
+
+@keyframes matrixBorder {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.assistant-message-header {
+    font-weight: 600;
+}
+
+.assistant-message-text {
+    grid-column-start: 2;
+    color: #00ff41;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
+    font-family: 'Courier New', monospace;
+    line-height: 1.6;
+    
+    /* Matrix text effect */
+    animation: matrixText 0.1s ease-in-out;
+}
+
+@keyframes matrixText {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; text-shadow: 0 0 15px rgba(0, 255, 65, 0.9); }
+    100% { opacity: 0.95; }
+}
+
+.assistant-message-icon {
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    border-radius: 9999px; 
+    width: 1.5rem; 
+    height: 1.5rem; 
+    color: #00ff41; 
+    background: radial-gradient(circle, #001100 0%, #003300 50%, #001100 100%);
+    border: 2px solid #00ff41;
+    box-shadow: 
+        0 0 15px rgba(0, 255, 65, 0.6),
+        inset 0 0 10px rgba(0, 255, 65, 0.2);
+    animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 
+            0 0 15px rgba(0, 255, 65, 0.6),
+            inset 0 0 10px rgba(0, 255, 65, 0.2);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 
+            0 0 25px rgba(0, 255, 65, 0.8),
+            inset 0 0 15px rgba(0, 255, 65, 0.4);
+    }
+}
+
+    .assistant-message-icon svg {
+        width: 1rem; 
+        height: 1rem; 
+    }
+
+.assistant-search {
+    font-size: 0.875rem;
+    line-height: 1.25rem; 
+}
+
+.assistant-search-icon {
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    width: 1.5rem; 
+    height: 1.5rem; 
+}
+
+    .assistant-search-icon svg {
+        width: 1rem; 
+        height: 1rem; 
+    }
+
+.assistant-search-content {
+    align-content: center;
+}
+
+.assistant-search-phrase {
+    font-weight: 600;
+}
+
+/* Matrix-style digital rain effect */
+.assistant-message::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(90deg, transparent 98%, rgba(0, 255, 65, 0.03) 100%),
+        linear-gradient(180deg, transparent 98%, rgba(0, 255, 65, 0.03) 100%);
+    background-size: 20px 20px;
+    pointer-events: none;
+    animation: matrixRain 8s linear infinite;
+}
+
+@keyframes matrixRain {
+    0% { background-position: 0 0; }
+    100% { background-position: 20px 20px; }
+}
+
+/* Entrance animation for new messages */
+.assistant-message {
+    animation: 
+        matrixSlideIn 0.8s ease-out,
+        matrixPulse 3s ease-in-out infinite 0.8s;
+}
+
+@keyframes matrixSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+        filter: blur(5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* Disable the animated border during slide-in */
+.assistant-message::before {
+    opacity: 0;
+    animation: matrixBorder 4s ease infinite 0.8s, borderFadeIn 0.2s ease-out 0.8s forwards;
+}
+
+@keyframes borderFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* Default styling for markdown-formatted assistant messages with matrix theme */
+::deep ul {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+    color: #00cc33;
+}
+
+::deep ol {
+    list-style-type: decimal;
+    margin-left: 1.5rem;
+    color: #00cc33;
+}
+
+::deep li {
+    margin: 0.5rem 0;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+}
+
+::deep strong {
+    font-weight: 600;
+    color: #00ff55;
+    text-shadow: 0 0 8px rgba(0, 255, 85, 0.5);
+}
+
+::deep h3 {
+    margin: 1rem 0;
+    font-weight: 600;
+    color: #00ff41;
+    text-shadow: 0 0 12px rgba(0, 255, 65, 0.7);
+    border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+    padding-bottom: 0.25rem;
+}
+
+::deep p + p {
+    margin-top: 1rem;
+}
+
+::deep table {
+    margin: 1rem 0;
+    border: 1px solid rgba(0, 255, 65, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+::deep th {
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 255, 65, 0.5);
+    background: rgba(0, 255, 65, 0.1);
+    color: #00ff41;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+::deep th, ::deep td {
+    padding: 0.1rem 0.5rem;
+    border-right: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+::deep td {
+    border-bottom: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+::deep tr:nth-child(even) {
+    background-color: rgba(0, 255, 65, 0.05);
+}
+
+::deep pre > code {
+    background: linear-gradient(135deg, #001100 0%, #002200 50%, #001100 100%);
+    color: #00ff41;
+    border: 1px solid rgba(0, 255, 65, 0.3);
+    border-radius: 4px;
+    display: block;
+    padding: 0.5rem 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+    box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.1);
+}
+
+/* Adaptive Card Styles */
+.adaptive-card-container {
+    margin: 1rem 0;
+    border: 1px solid #00ff41;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #0f2f0f 0%, #1a3e1a 50%, #255025 100%);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 65, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.adaptive-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(0, 255, 65, 0.1);
+    border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+    color: #00ff41;
+    font-weight: 600;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+.adaptive-card-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    filter: drop-shadow(0 0 3px rgba(0, 255, 65, 0.7));
+}
+
+.adaptive-card-content {
+    padding: 1rem;
+    color: #ffffff;
+}
+
+.adaptive-card-content pre {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 255, 65, 0.2);
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin: 0.5rem 0;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #00ff41;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.3);
+}
+
+.adaptive-card-content code {
+    color: #00ff41;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.3);
+}
+
+.adaptive-card-content em {
+    color: #cccccc;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Connection Card Specific Styles */
+.connection-card {
+    background: linear-gradient(135deg, #0f1f35 0%, #1a2a3e 50%, #162962 100%);
+    border: 1px solid #4169ff;
+    box-shadow: 
+        0 0 20px rgba(65, 105, 255, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: connectionPulse 3s ease-in-out infinite;
+}
+
+@keyframes connectionPulse {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(65, 105, 255, 0.3),
+            0 4px 15px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        border-color: #4169ff;
+    }
+    50% {
+        box-shadow: 
+            0 0 30px rgba(65, 105, 255, 0.6),
+            0 6px 20px rgba(0, 0, 0, 0.6),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        border-color: #5588ff;
+    }
+}
+
+.connection-card .adaptive-card-header {
+    background: rgba(65, 105, 255, 0.1);
+    border-bottom: 1px solid rgba(65, 105, 255, 0.3);
+    color: #4169ff;
+    text-shadow: 0 0 5px rgba(65, 105, 255, 0.5);
+}
+
+.connection-card .adaptive-card-icon {
+    filter: drop-shadow(0 0 3px rgba(65, 105, 255, 0.7));
+}
+
+.connection-card-content {
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+}
+
+.connection-header h3 {
+    color: #4169ff;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 0 10px rgba(65, 105, 255, 0.7);
+}
+
+.connection-header p {
+    color: #cccccc;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.5;
+}
+
+.service-info {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(65, 105, 255, 0.05);
+    border: 1px solid rgba(65, 105, 255, 0.2);
+    border-radius: 6px;
+}
+
+.service-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.service-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.service-name {
+    font-weight: 600;
+    color: #4169ff;
+    font-size: 1rem;
+    text-shadow: 0 0 5px rgba(65, 105, 255, 0.5);
+}
+
+.service-description {
+    color: #cccccc;
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.service-capabilities {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.service-capabilities li {
+    color: #00ff41;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.3);
+    margin: 0.25rem 0;
+}
+
+.privacy-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: rgba(255, 149, 0, 0.05);
+    border: 1px solid rgba(255, 149, 0, 0.2);
+    border-radius: 6px;
+}
+
+.warning-icon {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.privacy-text {
+    color: #cccccc;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.connection-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(65, 105, 255, 0.2);
+}
+
+.connection-btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    text-shadow: 0 0 5px currentColor;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.allow-btn {
+    background: linear-gradient(135deg, #00aa2e 0%, #00ff41 100%);
+    color: #000000;
+    border-color: #00ff41;
+}
+
+.allow-btn:hover {
+    background: linear-gradient(135deg, #00cc33 0%, #00ff55 100%);
+    box-shadow: 
+        0 0 15px rgba(0, 255, 65, 0.6),
+        0 4px 12px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+.cancel-btn {
+    background: linear-gradient(135deg, #666666 0%, #888888 100%);
+    color: #ffffff;
+    border-color: #888888;
+}
+
+.cancel-btn:hover {
+    background: linear-gradient(135deg, #777777 0%, #999999 100%);
+    box-shadow: 
+        0 0 15px rgba(136, 136, 136, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}

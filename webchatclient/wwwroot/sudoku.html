@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Sudoku</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Courier New', monospace;
+            color: #00ff41;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .sudoku-container {
+            padding: 1rem;
+            position: relative;
+        }
+
+        .sudoku-title {
+            text-align: center;
+            color: #00ff41;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .sudoku-board {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 1px;
+            background-color: #00ff41;
+            border: 3px solid #00ff41;
+            border-radius: 8px;
+            margin: 0 auto 1rem auto;
+            max-width: 350px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+
+        .sudoku-cell {
+            aspect-ratio: 1;
+            background-color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 30px;
+        }
+
+        .sudoku-cell.given {
+            background-color: #2d2d4a;
+            color: #00ff41;
+            cursor: default;
+            text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+        }
+
+        .sudoku-cell.user-input {
+            background-color: #1f1f3a;
+            color: #66ccff;
+            text-shadow: 0 0 8px rgba(102, 204, 255, 0.6);
+        }
+
+        .sudoku-cell.selected {
+            background-color: #2a4a2a !important;
+            box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.5);
+            border: 2px solid #00ff41 !important;
+            animation: selectedPulse 1.5s ease-in-out infinite;
+        }
+
+        .sudoku-cell.invalid {
+            background-color: #4a1f1f !important;
+            color: #ff4444 !important;
+            text-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+            animation: errorShake 0.5s ease-in-out;
+        }
+
+        .sudoku-cell:hover:not(.given) {
+            background-color: #252545;
+            box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+
+        /* 3x3 box borders */
+        .sudoku-cell.top-border { border-top: 2px solid #00ff41; }
+        .sudoku-cell.left-border { border-left: 2px solid #00ff41; }
+        .sudoku-cell.bottom-border { border-bottom: 2px solid #00ff41; }
+        .sudoku-cell.right-border { border-right: 2px solid #00ff41; }
+
+        .sudoku-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: center;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        .number-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.25rem;
+            width: 100%;
+        }
+
+        .number-btn, .clear-btn {
+            padding: 0.5rem;
+            background: linear-gradient(135deg, #1a1a3e 0%, #2d2d4a 50%, #1a1a3e 100%);
+            border: 1px solid #00ff41;
+            border-radius: 4px;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clear-btn {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .number-btn:hover, .clear-btn:hover {
+            background: linear-gradient(135deg, #2d2d4a 0%, #3a3a5a 50%, #2d2d4a 100%);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+            transform: translateY(-1px);
+            border-color: #44ff66;
+        }
+
+        .number-btn:active, .clear-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.6);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #0f2f0f 0%, #1a3e1a 50%, #0f2f0f 100%);
+            border: 1px solid #00ff41;
+            border-radius: 4px;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+            flex: 1;
+        }
+
+        .action-btn:hover {
+            background: linear-gradient(135deg, #1a3e1a 0%, #2d4a2d 50%, #1a3e1a 100%);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+            transform: translateY(-1px);
+            border-color: #44ff66;
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.6);
+        }
+
+        .sudoku-message {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.85rem;
+            animation: messageSlide 0.5s ease-out;
+        }
+
+        .sudoku-message.success {
+            background: linear-gradient(135deg, #0f3f0f 0%, #1a5a1a 50%, #0f3f0f 100%);
+            border: 1px solid #44ff44;
+            color: #44ff44;
+            box-shadow: 0 0 15px rgba(68, 255, 68, 0.3);
+        }
+
+        .sudoku-message.error {
+            background: linear-gradient(135deg, #3f0f0f 0%, #5a1a1a 50%, #3f0f0f 100%);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
+        }
+
+        .sudoku-message.info {
+            background: linear-gradient(135deg, #0f0f3f 0%, #1a1a5a 50%, #0f0f3f 100%);
+            border: 1px solid #4444ff;
+            color: #6666ff;
+            box-shadow: 0 0 15px rgba(68, 68, 255, 0.3);
+        }
+
+        /* Animations */
+        @keyframes selectedPulse {
+            0%, 100% {
+                box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.5);
+            }
+            50% {
+                box-shadow: inset 0 0 25px rgba(0, 255, 65, 0.8);
+            }
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        @keyframes messageSlide {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 500px) {
+            .sudoku-board {
+                max-width: 280px;
+            }
+            
+            .sudoku-cell {
+                min-height: 25px;
+                font-size: 0.85rem;
+            }
+            
+            .number-buttons {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .sudoku-controls {
+                max-width: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sudoku-container" id="sudoku-game">
+        <div class="sudoku-title">◉ MATRIX SUDOKU ◉</div>
+    </div>
+
+    <script>
+        class SudokuGame {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.board = this.generateSolvedBoard();
+                this.puzzle = this.createPuzzle(this.board);
+                this.solution = JSON.parse(JSON.stringify(this.board));
+                this.userBoard = JSON.parse(JSON.stringify(this.puzzle));
+                this.selectedCell = null;
+                this.init();
+            }
+
+            generateSolvedBoard() {
+                const board = Array(9).fill().map(() => Array(9).fill(0));
+                this.solveSudoku(board);
+                return board;
+            }
+
+            solveSudoku(board) {
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (board[row][col] === 0) {
+                            const numbers = this.shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+                            for (let num of numbers) {
+                                if (this.isValidMove(board, row, col, num)) {
+                                    board[row][col] = num;
+                                    if (this.solveSudoku(board)) {
+                                        return true;
+                                    }
+                                    board[row][col] = 0;
+                                }
+                            }
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            shuffleArray(array) {
+                const shuffled = [...array];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            }
+
+            isValidMove(board, row, col, num) {
+                for (let x = 0; x < 9; x++) {
+                    if (board[row][x] === num) return false;
+                }
+                for (let x = 0; x < 9; x++) {
+                    if (board[x][col] === num) return false;
+                }
+                const startRow = row - row % 3;
+                const startCol = col - col % 3;
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        if (board[i + startRow][j + startCol] === num) return false;
+                    }
+                }
+                return true;
+            }
+
+            createPuzzle(solvedBoard) {
+                const puzzle = JSON.parse(JSON.stringify(solvedBoard));
+                const cellsToRemove = 40 + Math.floor(Math.random() * 20);
+                
+                let removed = 0;
+                while (removed < cellsToRemove) {
+                    const row = Math.floor(Math.random() * 9);
+                    const col = Math.floor(Math.random() * 9);
+                    
+                    if (puzzle[row][col] !== 0) {
+                        puzzle[row][col] = 0;
+                        removed++;
+                    }
+                }
+                
+                return puzzle;
+            }
+
+            init() {
+                this.createBoard();
+                this.createControls();
+            }
+
+            createBoard() {
+                const boardContainer = document.createElement('div');
+                boardContainer.className = 'sudoku-board';
+                
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'sudoku-cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        if (row % 3 === 0) cell.classList.add('top-border');
+                        if (col % 3 === 0) cell.classList.add('left-border');
+                        if (row === 8) cell.classList.add('bottom-border');
+                        if (col === 8) cell.classList.add('right-border');
+                        
+                        const value = this.puzzle[row][col];
+                        if (value !== 0) {
+                            cell.textContent = value;
+                            cell.classList.add('given');
+                        } else {
+                            cell.addEventListener('click', () => this.selectCell(row, col));
+                        }
+                        
+                        boardContainer.appendChild(cell);
+                    }
+                }
+                
+                this.container.appendChild(boardContainer);
+            }
+
+            createControls() {
+                const controlsContainer = document.createElement('div');
+                controlsContainer.className = 'sudoku-controls';
+                
+                const numbersContainer = document.createElement('div');
+                numbersContainer.className = 'number-buttons';
+                
+                for (let i = 1; i <= 9; i++) {
+                    const button = document.createElement('button');
+                    button.textContent = i;
+                    button.className = 'number-btn';
+                    button.addEventListener('click', () => this.inputNumber(i));
+                    numbersContainer.appendChild(button);
+                }
+                
+                const clearBtn = document.createElement('button');
+                clearBtn.textContent = 'Clear';
+                clearBtn.className = 'clear-btn';
+                clearBtn.addEventListener('click', () => this.clearCell());
+                numbersContainer.appendChild(clearBtn);
+                
+                controlsContainer.appendChild(numbersContainer);
+                
+                const actionsContainer = document.createElement('div');
+                actionsContainer.className = 'action-buttons';
+                
+                const newGameBtn = document.createElement('button');
+                newGameBtn.textContent = 'New Game';
+                newGameBtn.className = 'action-btn';
+                newGameBtn.addEventListener('click', () => this.newGame());
+                
+                const checkBtn = document.createElement('button');
+                checkBtn.textContent = 'Check';
+                checkBtn.className = 'action-btn';
+                checkBtn.addEventListener('click', () => this.checkSolution());
+                
+                actionsContainer.appendChild(newGameBtn);
+                actionsContainer.appendChild(checkBtn);
+                controlsContainer.appendChild(actionsContainer);
+                
+                this.container.appendChild(controlsContainer);
+            }
+
+            selectCell(row, col) {
+                const prevSelected = this.container.querySelector('.selected');
+                if (prevSelected) prevSelected.classList.remove('selected');
+                
+                const cell = this.container.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                if (cell && !cell.classList.contains('given')) {
+                    cell.classList.add('selected');
+                    this.selectedCell = { row, col };
+                }
+            }
+
+            inputNumber(num) {
+                if (!this.selectedCell) return;
+                
+                const { row, col } = this.selectedCell;
+                const cell = this.container.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                
+                if (cell && !cell.classList.contains('given')) {
+                    this.userBoard[row][col] = num;
+                    cell.textContent = num;
+                    cell.classList.add('user-input');
+                    
+                    if (!this.isValidMove(this.getUserBoardWithoutCell(row, col), row, col, num)) {
+                        cell.classList.add('invalid');
+                    } else {
+                        cell.classList.remove('invalid');
+                    }
+                    
+                    setTimeout(() => this.checkCompletion(), 100);
+                }
+            }
+
+            getUserBoardWithoutCell(excludeRow, excludeCol) {
+                const board = JSON.parse(JSON.stringify(this.userBoard));
+                board[excludeRow][excludeCol] = 0;
+                return board;
+            }
+
+            clearCell() {
+                if (!this.selectedCell) return;
+                
+                const { row, col } = this.selectedCell;
+                const cell = this.container.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                
+                if (cell && !cell.classList.contains('given')) {
+                    this.userBoard[row][col] = 0;
+                    cell.textContent = '';
+                    cell.classList.remove('user-input', 'invalid');
+                }
+            }
+
+            newGame() {
+                this.container.innerHTML = '<div class="sudoku-title">◉ MATRIX SUDOKU ◉</div>';
+                this.board = this.generateSolvedBoard();
+                this.puzzle = this.createPuzzle(this.board);
+                this.solution = JSON.parse(JSON.stringify(this.board));
+                this.userBoard = JSON.parse(JSON.stringify(this.puzzle));
+                this.selectedCell = null;
+                this.init();
+            }
+
+            checkSolution() {
+                let isComplete = true;
+                let hasErrors = false;
+                
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (this.userBoard[row][col] === 0) {
+                            isComplete = false;
+                        } else if (this.userBoard[row][col] !== this.solution[row][col]) {
+                            hasErrors = true;
+                            const cell = this.container.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                            if (cell) cell.classList.add('invalid');
+                        }
+                    }
+                }
+                
+                if (isComplete && !hasErrors) {
+                    this.showMessage('🎉 Congratulations! You solved the puzzle! 🎉', 'success');
+                } else if (hasErrors) {
+                    this.showMessage('There are some errors in your solution.', 'error');
+                } else {
+                    this.showMessage('Keep going! The puzzle is not complete yet.', 'info');
+                }
+            }
+
+            checkCompletion() {
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (this.userBoard[row][col] === 0) return;
+                    }
+                }
+                
+                let isCorrect = true;
+                for (let row = 0; row < 9; row++) {
+                    for (let col = 0; col < 9; col++) {
+                        if (this.userBoard[row][col] !== this.solution[row][col]) {
+                            isCorrect = false;
+                            break;
+                        }
+                    }
+                    if (!isCorrect) break;
+                }
+                
+                if (isCorrect) {
+                    this.showMessage('🎉 Congratulations! You solved the puzzle! 🎉', 'success');
+                }
+            }
+
+            showMessage(text, type) {
+                const existing = this.container.querySelector('.sudoku-message');
+                if (existing) existing.remove();
+                
+                const message = document.createElement('div');
+                message.className = `sudoku-message ${type}`;
+                message.textContent = text;
+                
+                this.container.appendChild(message);
+                
+                setTimeout(() => {
+                    if (message.parentNode) {
+                        message.remove();
+                    }
+                }, 3000);
+            }
+        }
+
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SudokuGame('sudoku-game');
+        });
+    </script>
+</body>
+</html>

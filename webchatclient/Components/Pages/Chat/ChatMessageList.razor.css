@@ -1,0 +1,227 @@
+﻿.message-list-container {
+    margin: 2rem 1.5rem 0 1.5rem;
+    flex-grow: 1;
+    
+    /* Same futuristic background gradient as chat input */
+    background: linear-gradient(180deg, 
+        rgba(15, 15, 35, 0.95) 0%, 
+        rgba(26, 26, 46, 0.98) 50%, 
+        rgba(22, 33, 62, 1) 100%);
+    
+    /* Rounded corners */
+    border-radius: 16px;
+    
+    /* Add some padding for better spacing */
+    padding: 1.5rem;
+    
+    /* Enhanced border and drop shadow */
+    border: 1px solid rgba(0, 255, 65, 0.1);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 4px 16px rgba(0, 0, 0, 0.3),
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    
+    /* Make it scrollable */
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: calc(100vh - 300px);
+    
+    /* Ensure content stays within bounds */
+    contain: layout;
+    position: relative;
+    
+    /* Custom scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 255, 65, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+/* Webkit scrollbar styling for better browsers */
+.message-list-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.message-list-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.message-list-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, 
+        rgba(0, 255, 65, 0.4) 0%, 
+        rgba(0, 255, 65, 0.2) 100%);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 255, 65, 0.1);
+}
+
+.message-list-container::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, 
+        rgba(0, 255, 65, 0.6) 0%, 
+        rgba(0, 255, 65, 0.4) 100%);
+}
+
+.message-list {
+    display: flex; 
+    flex-direction: column; 
+    gap: 1.25rem;
+    
+    /* Ensure messages fit within container */
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
+    
+    /* Handle text overflow */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.no-messages {
+    text-align: center;
+    margin-top: calc(40vh - 18rem);
+    
+    /* Apply futuristic styling directly to the container */
+    font-family: 'Orbitron', 'Exo 2', 'Rajdhani', 'Share Tech Mono', 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    
+    /* Futuristic glow effect */
+    color: #00ff41;
+    text-shadow: 
+        0 0 10px rgba(0, 255, 65, 0.8),
+        0 0 20px rgba(0, 255, 65, 0.6),
+        0 0 30px rgba(0, 255, 65, 0.4),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    
+    /* Subtle animation */
+    animation: titlePulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes titlePulse {
+    0% {
+        text-shadow: 
+            0 0 10px rgba(0, 255, 65, 0.8),
+            0 0 20px rgba(0, 255, 65, 0.6),
+            0 0 30px rgba(0, 255, 65, 0.4),
+            0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    100% {
+        text-shadow: 
+            0 0 15px rgba(0, 255, 65, 1),
+            0 0 30px rgba(0, 255, 65, 0.8),
+            0 0 45px rgba(0, 255, 65, 0.6),
+            0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.welcome-image {
+    margin-top: 2rem;
+    text-align: center;
+    transition: all 0.8s ease-out;
+}
+
+.welcome-image img {
+    max-width: 500px;
+    width: 100%;
+    height: auto;
+    opacity: 0.8;
+    transition: all 0.8s ease-out;
+    display: block;
+    margin: 0 auto;
+    transform: scale(1);
+}
+
+.welcome-image img:hover {
+    opacity: 1;
+}
+
+/* Visible state for the image */
+.welcome-image-visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.welcome-image-visible img {
+    opacity: 0.8;
+    transform: scale(1);
+}
+
+/* Exit animation - fade and shrink */
+.welcome-image:not(.welcome-image-visible) {
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+}
+
+.welcome-image:not(.welcome-image-visible) img {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+chat-messages > ::deep div:last-of-type {
+    /* Adds some vertical buffer to so that suggestions don't overlap the output when they appear */
+    margin-bottom: 2rem;
+}
+
+/* Floating icon in top left corner */
+.floating-icon {
+    position: fixed;
+    top: 1.5rem;
+    left: 1.5rem;
+    z-index: 1000;
+    
+    /* Start large and animate to small */
+    animation: shrinkToCorner 1s ease-out forwards;
+    
+    /* Ensure it doesn't interfere with interactions */
+    pointer-events: none;
+}
+
+.floating-icon img {
+    width: 80px;
+    height: auto;
+    max-height: 80px;
+    border-radius: 8px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    
+    /* Maintain aspect ratio */
+    object-fit: contain;
+    
+    /* Subtle glow effect */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.floating-icon:hover img {
+    opacity: 0.9;
+}
+
+@keyframes shrinkToCorner {
+    0% {
+        /* Start from center with large size */
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(5);
+        opacity: 0.8;
+    }
+    100% {
+        /* End in corner with small size */
+        top: 1.5rem;
+        left: 1.5rem;
+        transform: translate(0, 0) scale(1);
+        opacity: 0.7;
+    }
+}
+
+.waiting-message {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.waiting-message .assistant-message {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.25rem; 
+    align-items: center;
+}

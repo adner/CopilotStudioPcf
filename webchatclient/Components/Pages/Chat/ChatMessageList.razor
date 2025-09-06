@@ -1,0 +1,75 @@
+@inject IJSRuntime JS
+
+<div class="message-list-container">
+    <chat-messages class="page-width message-list" in-progress="@(InProgressMessage is not null)">
+        @foreach (var message in Messages)
+        {
+            <ChatMessageItem @key="@message" Message="@message" OnSendMessage="@OnSendMessage" />
+        }
+
+        @if (InProgressMessage is not null)
+        {
+            <ChatMessageItem Message="@InProgressMessage" InProgress="true" OnSendMessage="@OnSendMessage" />
+            <LoadingSpinner />
+        }
+        else if (IsWaiting)
+        {
+            <div class="waiting-message">
+                <div class="assistant-message">
+                    <div class="assistant-message-icon">
+                        <svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <LoadingSpinner />
+                </div>
+            </div>
+        }
+        else if (IsEmpty)
+        {
+            <div class="no-messages">
+                @NoMessagesContent
+                <div class="welcome-image welcome-image-visible">
+                    <img src="image.png" alt="Copilot Studio" />
+                </div>
+            </div>
+        }
+        
+        @* Floating icon that appears after first message *@
+        @if (!IsEmpty)
+        {
+            <div class="floating-icon">
+                <img src="image.png" alt="Copilot Studio" />
+            </div>
+        }
+    </chat-messages>
+</div>
+
+@code {
+    [Parameter]
+    public required IEnumerable<ChatMessage> Messages { get; set; }
+
+    [Parameter]
+    public ChatMessage? InProgressMessage { get; set; }
+
+    [Parameter]
+    public bool IsWaiting { get; set; }
+
+    [Parameter]
+    public RenderFragment? NoMessagesContent { get; set; }
+
+    [Parameter]
+    public EventCallback<ChatMessage> OnSendMessage { get; set; }
+
+    private bool IsEmpty => !Messages.Any(m => (m.Role == ChatRole.User || m.Role == ChatRole.Assistant) && !string.IsNullOrEmpty(m.Text));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Activates the auto-scrolling behavior with cache busting
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            await JS.InvokeVoidAsync("import", $"./Components/Pages/Chat/ChatMessageList.razor.js?v={timestamp}");
+        }
+    }
+}

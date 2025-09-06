@@ -1,0 +1,39 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet", "dotnet", "{5A728863-19AC-85BD-2451-DA9A2B6A9E80}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopilotStudioClient", "samples\dotnet\copilotstudio-client\CopilotStudioClient.csproj", "{F967EA4F-0347-6841-337E-68B4CC2D5FA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "webchatclient", "webchatclient\webchatclient.csproj", "{B2C3D4E5-F6A1-8901-2345-6789ABCDEF01}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F967EA4F-0347-6841-337E-68B4CC2D5FA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F967EA4F-0347-6841-337E-68B4CC2D5FA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F967EA4F-0347-6841-337E-68B4CC2D5FA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F967EA4F-0347-6841-337E-68B4CC2D5FA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2C3D4E5-F6A1-8901-2345-6789ABCDEF01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2C3D4E5-F6A1-8901-2345-6789ABCDEF01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2C3D4E5-F6A1-8901-2345-6789ABCDEF01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2C3D4E5-F6A1-8901-2345-6789ABCDEF01}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5A728863-19AC-85BD-2451-DA9A2B6A9E80} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
+		{F967EA4F-0347-6841-337E-68B4CC2D5FA1} = {5A728863-19AC-85BD-2451-DA9A2B6A9E80}
+		{B2C3D4E5-F6A1-8901-2345-6789ABCDEF01} = {5A728863-19AC-85BD-2451-DA9A2B6A9E80}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A2881821-854C-49C0-8C7B-A283F80F06AC}
+	EndGlobalSection
+EndGlobal
