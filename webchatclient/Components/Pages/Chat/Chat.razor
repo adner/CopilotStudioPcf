@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using System.ComponentModel
+@using Microsoft.Agents.Core.Models
 @inject IChatClient ChatClient
 @inject NavigationManager Nav
 @implements IDisposable
@@ -8,7 +9,7 @@
 
 @* <ChatHeader OnNewChat="@ResetConversationAsync" /> *@
 
-<ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage" IsWaiting="@isWaitingForResponse">
+<ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage" IsWaiting="@isWaitingForResponse" OnAdaptiveCardInvokeAction="@OnAdaptiveCardInvokeAction">
     <NoMessagesContent>
         <div>
             🤖Custom Copilot Studio chat GUI!🤖
@@ -94,16 +95,11 @@
         await chatInput!.FocusAsync();
     }
 
-    @* [Description("Searches for information using a phrase or keyword")]
-    private async Task<IEnumerable<string>> SearchAsync(
-        [Description("The phrase to search for.")] string searchPhrase,
-        [Description("If possible, specify the filename to search that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)
+    private async Task OnAdaptiveCardInvokeAction(AdaptiveCardInvokeAction action)
     {
-        await InvokeAsync(StateHasChanged);
-        var results = await Search.SearchAsync(searchPhrase, filenameFilter, maxResults: 5);
-        return results.Select(result =>
-            $"<result filename=\"{result.DocumentId}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");
-    } *@
+        // Empty handler for OnSendMessage
+        await Task.CompletedTask;
+    }
 
     public void Dispose()
         => currentResponseCancellation?.Cancel();

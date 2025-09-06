@@ -2,6 +2,7 @@
 @using System.Text.RegularExpressions
 @using System.Linq
 @using System.Text.Json
+@using Microsoft.Agents.Core.Models
 
 @if (Message.Role == ChatRole.User)
 {
@@ -116,7 +117,7 @@ else if (Message.Role == ChatRole.Assistant)
     public bool InProgress { get; set;}
 
     [Parameter]
-    public EventCallback<ChatMessage> OnSendMessage { get; set; }
+    public EventCallback<AdaptiveCardInvokeAction> OnAdaptiveCardInvokeAction { get; set; }
 
     protected override void OnInitialized()
     {
@@ -260,41 +261,22 @@ else if (Message.Role == ChatRole.Assistant)
 
 
     private async Task HandleConnectionResponse(bool allowed)
-    {
-        var adaptiveCardResponse = new
+    {     
+        var invokeAction = new AdaptiveCardInvokeAction
         {
-            type = "AdaptiveCard",
-            version = "1.5",
-            body = new[]
+            Type = "Action.Submit",
+
+            // User-entered fields + any extra payload you need
+            Data = new
             {
-                new
-                {
-                    type = "TextBlock",
-                    text = allowed ? "Connection allowed" : "Connection cancelled",
-                    weight = "Bolder"
-                }
-            },
-            actions = new[]
-            {
-                new
-                {
-                    type = "Action.Submit",
-                    title = allowed ? "Allow" : "Cancel",
-                    data = new
-                    {
-                        action = allowed ? "ConnectionAllowed" : "ConnectionCancelled",
-                        timestamp = DateTimeOffset.UtcNow.ToString("O")
-                    }
-                }
+                action = allowed ? "ConnectionAllowed" : "ConnectionCancelled",
+                timestamp = DateTimeOffset.UtcNow.ToString("O")
             }
         };
-
-        var responseJson = System.Text.Json.JsonSerializer.Serialize(adaptiveCardResponse);
-        var userMessage = new ChatMessage(ChatRole.User, responseJson);
         
-        if (OnSendMessage.HasDelegate)
+        if (OnAdaptiveCardInvokeAction.HasDelegate)
         {
-            await OnSendMessage.InvokeAsync(userMessage);
+            await OnAdaptiveCardInvokeAction.InvokeAsync(invokeAction);
         }
     }
 }
