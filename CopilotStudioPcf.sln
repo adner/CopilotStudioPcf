@@ -6,8 +6,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet", "dotnet", "{5A728863-19AC-85BD-2451-DA9A2B6A9E80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopilotStudioClient", "samples\dotnet\copilotstudio-client\CopilotStudioClient.csproj", "{F967EA4F-0347-6841-337E-68B4CC2D5FA1}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "webchatclient", "webchatclient\webchatclient.csproj", "{B2C3D4E5-F6A1-8901-2345-6789ABCDEF01}"
 EndProject
 Global
