@@ -53,10 +53,9 @@ The application "piggy backs" on Adaptive cards sent from Copilot Studio, where 
 
 The `action` attribute - "PlaySokudo" in this case is what the client triggers on to render the custom GUI.
 
+## Overview of the Adaptive Card Function Calling implementation
 
-## Overview of th4e Adaptive Card Function Calling implementation
-
-This implementation sets up automatic method execution when a "RenderAdaptiveCardAsync" function call is encountered in chat responses. The system uses Microsoft.Extensions.AI's function invocation framework to "automatically" route function calls to registered methods. To be honest, this is really not AI function calling, since the AI isn't really involved - it is more a way of using the Function-calling plumbing in Microsoft.Extensions.AI to "manually" call functions that render custom UI elements.
+When a "RenderAdaptiveCardAsync" function call is encountered in chat responses, the client renders custom UI components - for example a Sudoku game. The system uses Microsoft.Extensions.AI's function invocation framework to "automatically" route function calls to registered methods. To be honest, this is really not AI function calling, since the AI isn't really involved - it is more a way of using the Function-calling plumbing in Microsoft.Extensions.AI to "manually" call functions that render custom UI elements.
 
 ## How It Works
 
