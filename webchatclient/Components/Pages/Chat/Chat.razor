@@ -1,6 +1,9 @@
 ﻿@page "/"
 @using System.ComponentModel
+@using Microsoft.Agents.Core.Models
+@using webchatclient.Services
 @inject IChatClient ChatClient
+@inject CopilotStudioIChatClient CopilotStudioClient
 @inject NavigationManager Nav
 @implements IDisposable
 
@@ -8,7 +11,7 @@
 
 @* <ChatHeader OnNewChat="@ResetConversationAsync" /> *@
 
-<ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage" IsWaiting="@isWaitingForResponse">
+<ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage" IsWaiting="@isWaitingForResponse" OnAdaptiveCardInvokeAction="@OnAdaptiveCardInvokeAction">
     <NoMessagesContent>
         <div>
             🤖Custom Copilot Studio chat GUI!🤖
@@ -34,7 +37,6 @@
 
         // Add the user message to the conversation
         messages.Add(userMessage);
-        //chatSuggestions?.Clear();
         await chatInput!.FocusAsync();
 
         // Show loading state immediately
@@ -68,7 +70,7 @@
             isWaitingForResponse = false;
         }
 
-        // Store the final response in the conversation, and begin getting suggestions
+        // Store the final response in the conversation.
         messages.Add(currentResponseMessage!);
         currentResponseMessage = null;
     }
@@ -94,16 +96,45 @@
         await chatInput!.FocusAsync();
     }
 
-    @* [Description("Searches for information using a phrase or keyword")]
-    private async Task<IEnumerable<string>> SearchAsync(
-        [Description("The phrase to search for.")] string searchPhrase,
-        [Description("If possible, specify the filename to search that file only. If not provided or empty, the search includes all files.")] string? filenameFilter = null)
+    private async Task OnAdaptiveCardInvokeAction(Activity invokeActivity)
     {
-        await InvokeAsync(StateHasChanged);
-        var results = await Search.SearchAsync(searchPhrase, filenameFilter, maxResults: 5);
-        return results.Select(result =>
-            $"<result filename=\"{result.DocumentId}\" page_number=\"{result.PageNumber}\">{result.Text}</result>");
-    } *@
+        isWaitingForResponse = true;
+        var responseText = new TextContent("");
+        currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
+        currentResponseCancellation = new();
+        
+        // Trigger UI update to show the spinner
+        StateHasChanged();
+
+        try
+        {
+            await foreach (var update in CopilotStudioClient.SendAdaptiveCardResponseToCopilotStudio(invokeActivity))
+            {
+                if (isWaitingForResponse && !string.IsNullOrEmpty(update.Text))
+                {
+                    isWaitingForResponse = false;
+                }
+                
+                messages.AddMessages(update, filter: c => c is not TextContent);
+                responseText.Text += update.Text;
+                ChatMessageItem.NotifyChanged(currentResponseMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error if needed
+            isWaitingForResponse = false;
+            responseText.Text = $"Error processing action: {ex.Message}";
+        }
+        finally
+        {
+            isWaitingForResponse = false;
+            ChatMessageItem.NotifyChanged(currentResponseMessage);
+        }
+
+        messages.Add(currentResponseMessage!);
+        currentResponseMessage = null;
+    }
 
     public void Dispose()
         => currentResponseCancellation?.Cancel();

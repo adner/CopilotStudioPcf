@@ -7,6 +7,7 @@
     color: #ffffff;
     white-space: pre-wrap;
     font-family: 'Courier New', monospace;
+    font-size: 1.7em;
     font-weight: 400;
     position: relative;
     
@@ -172,6 +173,7 @@
     color: #00ff41;
     text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
     font-family: 'Courier New', monospace;
+    font-size: 1.7em;
     line-height: 1.6;
     
     /* Matrix text effect */
@@ -615,4 +617,181 @@
         0 0 15px rgba(136, 136, 136, 0.4),
         0 4px 12px rgba(0, 0, 0, 0.4);
     transform: translateY(-2px);
+}
+
+/* Dataverse MCP Connection Card Styles */
+.dataverse-connection-card {
+    background: linear-gradient(135deg, #0f1f35 0%, #1a2a3e 50%, #162962 100%);
+    border: 1px solid #4169ff;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 
+        0 0 20px rgba(65, 105, 255, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: connectionPulse 3s ease-in-out infinite;
+}
+
+.dataverse-connection-card .connection-header {
+    margin-bottom: 2rem;
+}
+
+.dataverse-connection-card .connection-header h3 {
+    color: #4169ff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    text-shadow: 0 0 10px rgba(65, 105, 255, 0.7);
+}
+
+.dataverse-connection-card .connection-header p {
+    color: #cccccc;
+    margin: 0;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.dataverse-connection-card .service-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    padding: 1.25rem;
+    background: rgba(65, 105, 255, 0.05);
+    border: 1px solid rgba(65, 105, 255, 0.2);
+    border-radius: 8px;
+}
+
+.dataverse-connection-card .service-icon img {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dataverse-connection-card .service-name strong {
+    font-weight: 600;
+    color: #4169ff;
+    font-size: 1rem;
+    text-shadow: 0 0 5px rgba(65, 105, 255, 0.5);
+}
+
+.dataverse-connection-card .capabilities {
+    margin: 2rem 0;
+    padding: 1.25rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(65, 105, 255, 0.1);
+}
+
+.dataverse-connection-card .capabilities p {
+    margin: 0.5rem 0;
+    color: #cccccc;
+}
+
+.dataverse-connection-card .capabilities p:first-child {
+    font-weight: 600;
+    color: #4169ff;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.dataverse-connection-card .capabilities p:not(:first-child) {
+    color: #00ff41;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    text-shadow: 0 0 3px rgba(0, 255, 65, 0.3);
+    padding-left: 1rem;
+}
+
+.dataverse-connection-card .privacy-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 2rem 0;
+    padding: 1.25rem;
+    background: rgba(255, 149, 0, 0.05);
+    border: 1px solid rgba(255, 149, 0, 0.2);
+    border-radius: 8px;
+}
+
+.dataverse-connection-card .warning-icon {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.dataverse-connection-card .privacy-notice p {
+    color: #cccccc;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.dataverse-connection-card .action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(65, 105, 255, 0.2);
+}
+
+.dataverse-connection-card .btn-allow,
+.dataverse-connection-card .btn-cancel {
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
+
+.dataverse-connection-card .btn-allow {
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+.dataverse-connection-card .btn-allow:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+    box-shadow: 
+        0 0 20px rgba(59, 130, 246, 0.5),
+        0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+    border-color: #60a5fa;
+}
+
+.dataverse-connection-card .btn-allow:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 0 10px rgba(59, 130, 246, 0.4),
+        0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.dataverse-connection-card .btn-cancel {
+    background: transparent;
+    color: #94a3b8;
+    border-color: #475569;
+}
+
+.dataverse-connection-card .btn-cancel:hover {
+    background: rgba(71, 85, 105, 0.2);
+    color: #cbd5e1;
+    border-color: #64748b;
+    box-shadow: 
+        0 0 15px rgba(148, 163, 184, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.dataverse-connection-card .btn-cancel:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 0 8px rgba(148, 163, 184, 0.15),
+        0 2px 6px rgba(0, 0, 0, 0.3);
 }

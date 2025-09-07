@@ -53,7 +53,7 @@ The application "piggy backs" on Adaptive cards sent from Copilot Studio, where 
 
 The `action` attribute - "PlaySokudo" in this case is what the client triggers on to render the custom GUI.
 
-## Overview of the Adaptive Card Function Calling implementation
+# Overview of the Adaptive Card Function Calling implementation
 
 When a "RenderAdaptiveCardAsync" function call is encountered in chat responses, the client renders custom UI components - for example a Sudoku game. The system uses Microsoft.Extensions.AI's function invocation framework to "automatically" route function calls to registered methods. To be honest, this is really not AI function calling, since the AI isn't really involved - it is more a way of using the Function-calling plumbing in Microsoft.Extensions.AI to "manually" call functions that render custom UI elements.
 
@@ -110,5 +110,84 @@ In `ChatMessageItem.razor`, the function call is detected and rendered in the UI
             }
         ...
 ```
+## Overview of Dataverse MCP Server consent flow using Adaptive Cards
+
+The Dataverse MCP Server consent flow uses Adaptive Cards to handle user authorization for connecting to Microsoft Dataverse. 
+
+### Technical Implementation
+
+#### 1. Consent Card Detection
+
+When an Adaptive Card is received from Copilot Studio, the system checks if it's a consent request by examining its structure in `ChatMessageItem.razor`:
+
+```csharp
+private bool ShouldRenderConsentCard(string cardJson)
+{
+    // Parse the JSON and check for "Connect to continue" title
+    // This identifies consent cards that require user authorization
+    if (firstItem.TryGetProperty("text", out var titleText) && 
+        titleText.GetString() == "Connect to continue")
+    {
+        return true;
+    }
+}
+```
+
+#### 2. Consent UI Rendering
+
+When a consent card is detected, a custom UI is rendered showing:
+- Service information (Microsoft Dataverse)
+- Required permissions and capabilities
+- Privacy notice about credential sharing
+- Allow/Cancel action buttons
+
+#### 3. Handling User Response
+
+When the user clicks Allow or Cancel, the response is sent back to Copilot Studio:
+
+```csharp
+private async Task HandleConnectionResponse(bool allowed, string? incomingActivityId)
+{
+    var invokeActivity = new Activity
+    {
+        Type = ActivityTypes.Invoke,
+        Name = "connectors/consentCard",
+        Value = new
+        {
+            action = allowed ? "Allow" : "Cancel",
+            id = "submit",
+            shouldAwaitUserInput = true
+        },
+        ReplyToId = incomingActivityId ?? string.Empty,
+    };
+    
+    await OnAdaptiveCardInvokeAction.InvokeAsync(invokeActivity);
+}
+```
+
+#### 4. Processing the Response
+
+The response is sent through `CopilotStudioIChatClient.SendAdaptiveCardResponseToCopilotStudio`:
+
+```csharp
+public async IAsyncEnumerable<ChatResponseUpdate> SendAdaptiveCardResponseToCopilotStudio(Activity invokeActivity)
+{
+    // Send the consent response to Copilot Studio
+    await foreach (var activity in _copilotClient.AskQuestionAsync(invokeActivity))
+    {
+        // Process the response and update UI accordingly
+        if (activity.Type == "message" && !string.IsNullOrEmpty(activity.Text))
+        {
+            yield return new ChatResponseUpdate
+            {
+                Contents = [new TextContent("Successfully connected to Dataverse MCP Server.")],
+                Role = ChatRole.Assistant
+            };
+        }
+    }
+}
+```
+A key point is the usage of `ReplyToId` to correlate consent responses with the original request.
+
 
 

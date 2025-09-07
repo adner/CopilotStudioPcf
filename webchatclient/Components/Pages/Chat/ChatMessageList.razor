@@ -1,15 +1,17 @@
 @inject IJSRuntime JS
 
+@using Microsoft.Agents.Core.Models
+
 <div class="message-list-container">
     <chat-messages class="page-width message-list" in-progress="@(InProgressMessage is not null)">
         @foreach (var message in Messages)
         {
-            <ChatMessageItem @key="@message" Message="@message" OnSendMessage="@OnSendMessage" />
+            <ChatMessageItem @key="@message" Message="@message" OnAdaptiveCardInvokeAction="@OnAdaptiveCardInvokeAction" />
         }
 
         @if (InProgressMessage is not null)
         {
-            <ChatMessageItem Message="@InProgressMessage" InProgress="true" OnSendMessage="@OnSendMessage" />
+            <ChatMessageItem Message="@InProgressMessage" InProgress="true" OnAdaptiveCardInvokeAction="@OnAdaptiveCardInvokeAction" />
             <LoadingSpinner />
         }
         else if (IsWaiting)
@@ -59,7 +61,7 @@
     public RenderFragment? NoMessagesContent { get; set; }
 
     [Parameter]
-    public EventCallback<ChatMessage> OnSendMessage { get; set; }
+    public EventCallback<Activity> OnAdaptiveCardInvokeAction { get; set; }
 
     private bool IsEmpty => !Messages.Any(m => (m.Role == ChatRole.User || m.Role == ChatRole.Assistant) && !string.IsNullOrEmpty(m.Text));
 
