@@ -71,6 +71,33 @@ namespace webchatclient.Services
             };
         }
 
+        public async IAsyncEnumerable<ChatResponseUpdate> SendAdaptiveCardResponseToCopilotStudio(Activity invokeActivity)
+        {
+            var createdAt = DateTimeOffset.UtcNow;
+
+            await foreach (var activity in _copilotClient.AskQuestionAsync(invokeActivity))
+            {
+                if (activity.Type == "message" && !string.IsNullOrEmpty(activity.Text))
+                {
+                    yield return new ChatResponseUpdate
+                    {
+                        CreatedAt = createdAt,
+                        Contents = [new TextContent("Successfully connected to Dataverse MCP Server.")],
+                        Role = ChatRole.Assistant
+                    };
+                }
+                else if (activity.Type == "message" && activity.Attachments.Count == 1 && activity.Attachments[0].ContentType == "application/vnd.microsoft.card.adaptive")
+                {
+                    yield return new ChatResponseUpdate
+                    {
+                        CreatedAt = createdAt,
+                        Contents = [new TextContent("There was an error connecting to the Dataverse MCP Server.")],
+                        Role = ChatRole.Assistant
+                    };
+                }
+            }
+        }
+
         public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var lastMessage = messages.LastOrDefault();
@@ -103,18 +130,19 @@ namespace webchatclient.Services
                     };
                 }
                 else if (activity.Type == "message" && activity.Attachments.Count == 1 && activity.Attachments[0].ContentType == "application/vnd.microsoft.card.adaptive")
-                { 
+                {
                     // Extract the adaptive card JSON and yield a function call to render it
                     var adaptiveCardJson = JsonSerializer.Serialize(activity.Attachments[0].Content);
-                    
+
                     yield return new ChatResponseUpdate
                     {
                         CreatedAt = createdAt,
-                        Contents = [new FunctionCallContent("RenderAdaptiveCardAsync", adaptiveCardJson) 
-                        { 
-                            Arguments = new Dictionary<string, object?> 
-                            { 
-                                ["adaptiveCardJson"] = adaptiveCardJson 
+                        Contents = [new FunctionCallContent("RenderAdaptiveCardAsync", adaptiveCardJson)
+                        {
+                            Arguments = new Dictionary<string, object?>
+                            {
+                                ["adaptiveCardJson"] = adaptiveCardJson,   
+                                ["incomingActivityId"] = activity.Id                        
                             }
                         }],
                         Role = ChatRole.Assistant

@@ -2,6 +2,9 @@
 @using System.Text.RegularExpressions
 @using System.Linq
 @using System.Text.Json
+@using Microsoft.Agents.Core.Models
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
 
 @if (Message.Role == ChatRole.User)
 {
@@ -26,16 +29,23 @@ else if (Message.Role == ChatRole.Assistant)
                 <div class="assistant-message-header" style="color: white; font-weight: bold;">🤖 Copilot Studio Agent</div>
                 <div class="assistant-message-text">
                     <assistant-message markdown="@text"></assistant-message>
-
-                    @foreach (var citation in citations ?? [])
-                    {
-                        <ChatCitation File="@citation.File" PageNumber="@citation.Page" Quote="@citation.Quote" />
-                    }
                 </div>
             </div>
         }
         else if (content is FunctionCallContent { CallId: "RenderAdaptiveCardAsync" } acc && acc.Arguments?.TryGetValue("adaptiveCardJson", out var cardJsonObj) is true && cardJsonObj is string cardJson)
         {
+                 // Write cardJson to disk for debugging
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var tempDir = "C:\\Temp";
+            if (!System.IO.Directory.Exists(tempDir))
+            {
+                System.IO.Directory.CreateDirectory(tempDir);
+            }
+            var fileName = $"{tempDir}\\adaptive_card_{timestamp}.json";
+            System.IO.File.WriteAllText(fileName, cardJson);
+
+            var incomingActivityId = acc.Arguments.TryGetValue("incomingActivityId", out var idObj) && idObj is string idStr ? idStr : null;
+            
             @if (ShouldRenderSudokuCard(cardJson))
             {
                 <div class="adaptive-card-container">
@@ -60,15 +70,196 @@ else if (Message.Role == ChatRole.Assistant)
                     </div>
                 </div>
             }
+            else if (ShouldRenderDataverseMcpConnectionCard(cardJson))
+            {
+                <div class="adaptive-card-container">
+                    <div class="dataverse-connection-card">
+                        <div class="connection-header">
+                            <h3>Connect to continue</h3>
+                            <p>I'll use your credentials to connect and to get the information you're looking for.</p>
+                        </div>
+                        
+                        <div class="service-info">
+                            <div class="service-icon">
+                                <img src="https://conn-afd-prod-endpoint-bmc9bqahasf3grgk.b01.azurefd.net/v1.0.1768/1.0.1768.4346/commondataserviceforapps/icon.png" 
+                                     alt="Microsoft Dataverse" width="32" height="32" />
+                            </div>
+                            <div class="service-name">
+                                <strong>Microsoft Dataverse</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="capabilities">
+                            <p><strong>This connection can:</strong></p>
+                            <p>- Dataverse MCP Server</p>
+                        </div>
+                        
+                        <div class="privacy-notice">
+                            <div class="warning-icon">
+                                <svg width="15" height="15" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4.5 5.5C4.5 5.22386 4.72386 5 5 5C5.27614 5 5.5 5.22386 5.5 5.5V7C5.5 7.27614 5.27614 7.5 5 7.5C4.72386 7.5 4.5 7.27614 4.5 7V5.5ZM5 2.75C4.58579 2.75 4.25 3.08579 4.25 3.5C4.25 3.91421 4.58579 4.25 5 4.25C5.41421 4.25 5.75 3.91421 5.75 3.5C5.75 3.08579 5.41421 2.75 5 2.75ZM0 5C0 2.23858 2.23858 0 5 0C7.76142 0 10 2.23858 10 5C10 7.76142 7.76142 10 5 10C2.23858 10 0 7.76142 0 5ZM5 1C2.79086 1 1 2.79086 1 5C1 7.20914 2.79086 9 5 9C7.20914 9 9 7.20914 9 5C9 2.79086 7.20914 1 5 1Z" fill="#424242"/>
+                                </svg>
+                            </div>
+                            <p>Connecting to other services with your credentials may expose your data to privacy and security risks. Once you connect, we'll remember your settings and use them next time.</p>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button class="btn-allow" @onclick="() => HandleConnectionResponse(true, incomingActivityId)">
+                                Allow
+                            </button>
+                            <button class="btn-cancel" @onclick="() => HandleConnectionResponse(false, incomingActivityId)">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if(ShouldRenderRecordUpdatedCard(cardJson)){
+                 // Generate a unique key for this update message
+                 var updateKey = $"{Message.GetHashCode()}-{cardJson.GetHashCode()}";
+                 
+                 // Only process if we haven't already handled this specific update
+                 @if (!ProcessedRecordUpdates.Contains(updateKey))
+                 {
+                     ProcessedRecordUpdates.Add(updateKey);
+                     
+                     // Extract URL from the adaptive card JSON for record update
+                     string? tableName = null;
+                     string? recordId = null;
+                     
+                     try
+                     {
+                         using var jsonDoc = JsonDocument.Parse(cardJson);
+                         var root = jsonDoc.RootElement;
+                         
+                         if (root.TryGetProperty("actions", out var actionsElement) && actionsElement.ValueKind == JsonValueKind.Array)
+                         {
+                             foreach (var action in actionsElement.EnumerateArray())
+                             {
+                                 if (action.TryGetProperty("title", out var titleElement) &&
+                                     titleElement.GetString() == "Record was updated" &&
+                                     action.TryGetProperty("url", out var urlElement))
+                                 {
+                                     var url = urlElement.GetString();
+                                     if (!string.IsNullOrEmpty(url))
+                                     {
+                                         // Parse URL parameters for ID attributes
+                                         var uri = new Uri(url);
+                                         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                                         tableName = query["etn"]; // entity table name
+                                         recordId = query["id"];
+                                     }
+                                     break;
+                                 }
+                             }
+                         }
+                     }
+                     catch (Exception)
+                     {
+                         // Unable to parse JSON or URL
+                     }
+
+                    @if (!string.IsNullOrEmpty(tableName) && !string.IsNullOrEmpty(recordId))
+                    {
+                        var iframeId = $"dataverse-iframe-{tableName}-{recordId}";
+                        
+                        // Schedule JavaScript to refresh the iframe after render
+                        _ = Task.Run(async () =>
+                        {
+                            await Task.Delay(100); // Ensure DOM is ready
+                            await InvokeAsync(async () =>
+                            {
+                                try
+                                {
+                                    await JS.InvokeVoidAsync("eval", $@"
+                                        (function() {{
+                                            var iframe = document.getElementById('{iframeId}');
+                                            if (iframe) {{
+                                                // Add timestamp to force reload
+                                                var currentSrc = iframe.src;
+                                                var separator = currentSrc.includes('?') ? '&' : '?';
+                                                iframe.src = currentSrc.split('&refresh=')[0] + separator + 'refresh=' + Date.now();
+                                            }}
+                                        }})();
+                                    ");
+                                }
+                                catch { }
+                            });
+                        });
+                    }
+                 }
+                
+                // Always render a hidden marker
+                <div style="display: none;" data-record-updated="processed"></div>                
+            }
+            else if(ShouldRenderViewRecordCard(cardJson)){
+                 // Extract URL directly from the adaptive card JSON
+                 string? iframeUrl = null;
+                 string? tableName = null;
+                 string? recordId = null;
+                 
+                 try
+                 {
+                     using var jsonDoc = JsonDocument.Parse(cardJson);
+                     var root = jsonDoc.RootElement;
+                     
+                     if (root.TryGetProperty("actions", out var actionsElement) && actionsElement.ValueKind == JsonValueKind.Array)
+                     {
+                         foreach (var action in actionsElement.EnumerateArray())
+                         {
+                             if (action.TryGetProperty("title", out var titleElement) &&
+                                 titleElement.GetString() == "View record" &&
+                                 action.TryGetProperty("url", out var urlElement))
+                             {
+                                 iframeUrl = urlElement.GetString();
+                                 if (!string.IsNullOrEmpty(iframeUrl))
+                                 {
+                                     // Parse URL parameters for ID attributes
+                                     var uri = new Uri(iframeUrl);
+                                     var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                                     tableName = query["etn"]; // entity table name
+                                     recordId = query["id"];
+                                 }
+                                 break;
+                             }
+                         }
+                     }
+                 }
+                 catch (Exception)
+                 {
+                     // Unable to parse JSON or URL
+                 }
+
+                 @if (!string.IsNullOrEmpty(iframeUrl) && !string.IsNullOrEmpty(tableName) && !string.IsNullOrEmpty(recordId))
+                 {
+                     var iframeKey = $"{tableName}-{recordId}";
+                     // Get or create refresh timestamp
+                     if (!IframeRefreshTracking.ContainsKey(iframeKey))
+                     {
+                         IframeRefreshTracking[iframeKey] = DateTime.Now;
+                     }
+                     
+                     <div class="adaptive-card-container">
+                        <div class="adaptive-card-content">
+                             <iframe src="@($"{iframeUrl}&refresh={IframeRefreshTracking[iframeKey].Ticks}")" 
+                                    id="@($"dataverse-iframe-{tableName}-{recordId}")"
+                                    data-table-name="@tableName"
+                                    data-record-id="@recordId"
+                                    width="100%" height="630" frameborder="0"
+                                style="border-radius: 8px; background: #0f0f23;">
+                            </iframe>
+                        </div>
+                    </div>
+                 }
+            }
         }
     }
 }
 
 @code {
     private static readonly ConditionalWeakTable<ChatMessage, ChatMessageItem> SubscribersLookup = new();
-    private static readonly Regex CitationRegex = new(@"<citation filename='(?<file>[^']*)' page_number='(?<page>\d*)'>(?<quote>.*?)</citation>", RegexOptions.NonBacktracking);
-
-    private List<(string File, int? Page, string Quote)>? citations;
+    private static readonly Dictionary<string, DateTime> IframeRefreshTracking = new();
+    private static readonly HashSet<string> ProcessedRecordUpdates = new();
 
     [Parameter, EditorRequired]
     public required ChatMessage Message { get; set; }
@@ -77,16 +268,11 @@ else if (Message.Role == ChatRole.Assistant)
     public bool InProgress { get; set;}
 
     [Parameter]
-    public EventCallback<ChatMessage> OnSendMessage { get; set; }
+    public EventCallback<Activity> OnAdaptiveCardInvokeAction { get; set; }
 
     protected override void OnInitialized()
     {
         SubscribersLookup.AddOrUpdate(Message, this);
-
-        if (!InProgress && Message.Role == ChatRole.Assistant && Message.Text is { Length: > 0 } text)
-        {
-            ParseCitations(text);
-        }
     }
 
     public static void NotifyChanged(ChatMessage source)
@@ -95,14 +281,6 @@ else if (Message.Role == ChatRole.Assistant)
         {
             subscriber.StateHasChanged();
         }
-    }
-
-    private void ParseCitations(string text)
-    {
-        var matches = CitationRegex.Matches(text);
-        citations = matches.Any()
-            ? matches.Select(m => (m.Groups["file"].Value, int.TryParse(m.Groups["page"].Value, out var page) ? page : (int?)null, m.Groups["quote"].Value)).ToList()
-            : null;
     }
 
     private bool ShouldRenderSudokuCard(string cardJson)
@@ -160,44 +338,140 @@ else if (Message.Role == ChatRole.Assistant)
         
         return false;
     }
-
-
-    private async Task HandleConnectionResponse(bool allowed)
+    private bool ShouldRenderViewRecordCard(string cardJson)
     {
-        var adaptiveCardResponse = new
+        try
         {
-            type = "AdaptiveCard",
-            version = "1.5",
-            body = new[]
+            using var jsonDoc = JsonDocument.Parse(cardJson);
+            var root = jsonDoc.RootElement;
+            
+            if (root.TryGetProperty("actions", out var actionsElement) && actionsElement.ValueKind == JsonValueKind.Array)
             {
-                new
+                foreach (var action in actionsElement.EnumerateArray())
                 {
-                    type = "TextBlock",
-                    text = allowed ? "Connection allowed" : "Connection cancelled",
-                    weight = "Bolder"
-                }
-            },
-            actions = new[]
-            {
-                new
-                {
-                    type = "Action.Submit",
-                    title = allowed ? "Allow" : "Cancel",
-                    data = new
+                    if (action.TryGetProperty("title", out var titleElement) &&
+                        titleElement.GetString() == "View record")
                     {
-                        action = allowed ? "ConnectionAllowed" : "ConnectionCancelled",
-                        timestamp = DateTimeOffset.UtcNow.ToString("O")
+                        return true;
                     }
                 }
             }
-        };
-
-        var responseJson = System.Text.Json.JsonSerializer.Serialize(adaptiveCardResponse);
-        var userMessage = new ChatMessage(ChatRole.User, responseJson);
-        
-        if (OnSendMessage.HasDelegate)
+        }
+        catch (JsonException)
         {
-            await OnSendMessage.InvokeAsync(userMessage);
+            // Invalid JSON, don't render the card
+        }
+        
+        return false;
+    }
+
+ private bool ShouldRenderRecordUpdatedCard(string cardJson)
+    {
+        try
+        {
+            using var jsonDoc = JsonDocument.Parse(cardJson);
+            var root = jsonDoc.RootElement;
+            
+            if (root.TryGetProperty("actions", out var actionsElement) && actionsElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var action in actionsElement.EnumerateArray())
+                {
+                    if (action.TryGetProperty("title", out var titleElement) &&
+                        titleElement.GetString() == "Record was updated")
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // Invalid JSON, don't render the card
+        }
+        
+        return false;
+    }
+
+    private bool ShouldRenderDataverseMcpConnectionCard(string cardJson)
+    {
+        try
+        {
+            using var jsonDoc = JsonDocument.Parse(cardJson);
+            var root = jsonDoc.RootElement;
+            
+            // Check for the specific structure of the Dataverse MCP Connection Card
+            if (root.TryGetProperty("body", out var bodyElement) && bodyElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var bodyItem in bodyElement.EnumerateArray())
+                {
+                    if (bodyItem.TryGetProperty("text", out var textElement))
+                    {
+                        var text = textElement.GetString();
+                        if (text != null && text.Contains("Dataverse MCP Server"))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            
+            // Also check for Microsoft Dataverse in ColumnSet items
+            if (root.TryGetProperty("body", out var bodyArray) && bodyArray.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in bodyArray.EnumerateArray())
+                {
+                    if (item.TryGetProperty("type", out var typeElement) && 
+                        typeElement.GetString() == "ColumnSet" &&
+                        item.TryGetProperty("columns", out var columnsElement))
+                    {
+                        foreach (var column in columnsElement.EnumerateArray())
+                        {
+                            if (column.TryGetProperty("items", out var itemsElement))
+                            {
+                                foreach (var columnItem in itemsElement.EnumerateArray())
+                                {
+                                    if (columnItem.TryGetProperty("text", out var columnText) &&
+                                        columnText.GetString() == "Microsoft Dataverse")
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // Invalid JSON, don't render the card
+        }
+        
+        return false;
+    }
+
+
+
+    private async Task HandleConnectionResponse(bool allowed, string? incomingActivityId)
+    {
+        var invokeActivity = new Activity
+        {
+            Type = ActivityTypes.Invoke, // invoke activity
+            Name = "connectors/consentCard", // required for Adaptive Card actions
+            Value = new
+            {
+                action = "Allow",
+                id = "submit",
+                shouldAwaitUserInput = true
+                // If the incoming had extra fields (e.g., connectionName/state/correlationId),
+                // include them here as well — some handlers REQUIRE them.
+            },
+            ReplyToId = incomingActivityId ?? string.Empty,
+        };
+    
+        if (OnAdaptiveCardInvokeAction.HasDelegate)
+        {
+            await OnAdaptiveCardInvokeAction.InvokeAsync(invokeActivity);
         }
     }
 }
