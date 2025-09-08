@@ -72,14 +72,44 @@ else if (Message.Role == ChatRole.Assistant)
             }
              else if (ShouldRenderViewReportCard(cardJson))
             {
-                <div class="adaptive-card-container">
-                    <div class="adaptive-card-content">
-                        <iframe src="https://app.powerbi.com/view?r=eyJrIjoiYWJmYjI1YmMtMDE1ZS00MTYwLTliMzEtYWQwYTJlNjBmZDRiIiwidCI6ImVjZDRkZWFiLWExZGUtNGQ5ZC1hMDJhLTJjODdkZmE1ZWNmMiJ9&embedImagePlaceholder=true" 
-                                width="100%" height="630" frameborder="0"
-                            style="border-radius: 8px; background: #0f0f23;">
-                        </iframe>
+                // Extract URL directly from the adaptive card JSON
+                string? iframeUrl = null;
+                
+                try
+                {
+                    using var jsonDoc = JsonDocument.Parse(cardJson);
+                    var root = jsonDoc.RootElement;
+                    
+                    if (root.TryGetProperty("actions", out var actionsElement) && actionsElement.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var action in actionsElement.EnumerateArray())
+                        {
+                            if (action.TryGetProperty("title", out var titleElement) &&
+                                titleElement.GetString() == "View report" &&
+                                action.TryGetProperty("url", out var urlElement))
+                            {
+                                iframeUrl = urlElement.GetString();
+                                break;
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Unable to parse JSON or URL
+                }
+
+                @if (!string.IsNullOrEmpty(iframeUrl))
+                {
+                    <div class="adaptive-card-container">
+                        <div class="adaptive-card-content">
+                            <iframe src="@iframeUrl" 
+                                    width="100%" height="630" frameborder="0"
+                                style="border-radius: 8px; background: #0f0f23;">
+                            </iframe>
+                        </div>
                     </div>
-                </div>
+                }
             }
             else if (ShouldRenderDataverseMcpConnectionCard(cardJson))
             {
