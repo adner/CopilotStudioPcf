@@ -70,6 +70,17 @@ else if (Message.Role == ChatRole.Assistant)
                     </div>
                 </div>
             }
+             else if (ShouldRenderViewReportCard(cardJson))
+            {
+                <div class="adaptive-card-container">
+                    <div class="adaptive-card-content">
+                        <iframe src="https://app.powerbi.com/view?r=eyJrIjoiYWJmYjI1YmMtMDE1ZS00MTYwLTliMzEtYWQwYTJlNjBmZDRiIiwidCI6ImVjZDRkZWFiLWExZGUtNGQ5ZC1hMDJhLTJjODdkZmE1ZWNmMiJ9&embedImagePlaceholder=true" 
+                                width="100%" height="630" frameborder="0"
+                            style="border-radius: 8px; background: #0f0f23;">
+                        </iframe>
+                    </div>
+                </div>
+            }
             else if (ShouldRenderDataverseMcpConnectionCard(cardJson))
             {
                 <div class="adaptive-card-container">
@@ -365,19 +376,19 @@ else if (Message.Role == ChatRole.Assistant)
         return false;
     }
 
- private bool ShouldRenderRecordUpdatedCard(string cardJson)
+    private bool ShouldRenderRecordUpdatedCard(string cardJson)
     {
         try
         {
             using var jsonDoc = JsonDocument.Parse(cardJson);
             var root = jsonDoc.RootElement;
-            
+
             if (root.TryGetProperty("actions", out var actionsElement) && actionsElement.ValueKind == JsonValueKind.Array)
             {
                 foreach (var action in actionsElement.EnumerateArray())
                 {
                     if (action.TryGetProperty("title", out var titleElement) &&
-                        titleElement.GetString() == "Record was updated")
+                    titleElement.GetString() == "Record was updated")
                     {
                         return true;
                     }
@@ -388,7 +399,35 @@ else if (Message.Role == ChatRole.Assistant)
         {
             // Invalid JSON, don't render the card
         }
-        
+
+        return false;
+    }
+
+    
+    private bool ShouldRenderViewReportCard(string cardJson)
+    {
+        try
+        {
+            using var jsonDoc = JsonDocument.Parse(cardJson);
+            var root = jsonDoc.RootElement;
+
+            if (root.TryGetProperty("actions", out var actionsElement) && actionsElement.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var action in actionsElement.EnumerateArray())
+                {
+                    if (action.TryGetProperty("title", out var titleElement) &&
+                    titleElement.GetString() == "View report")
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // Invalid JSON, don't render the card
+        }
+
         return false;
     }
 
