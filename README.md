@@ -8,6 +8,8 @@ This project provides a custom chat interface for Microsoft Copilot Studio agent
 
 The major modifications that have been made to the template is added plumbing for injecting CopilotStudioClient-instances, when IChatClient is requested. `CopilotStudioIChatClient` has been implemented for this purpose, which wraps the CopilotStudioClient and implements the [Microsoft.Extensions.AI.IChatClient](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.ai.ichatclient?view=net-9.0-pp) interface.
 
+The Copilot Studio authentication code is from [this sample code](https://github.com/microsoft/Agents-for-net/tree/main/src/samples/CopilotStudioClient/CopilotStudioClient), follow the instruction in the [README](https://github.com/microsoft/Agents-for-net/tree/main/src/samples/CopilotStudioClient/CopilotStudioClient#readme) to setup the required app registration with permissions to the **Power Platform API**.
+
 ### Setup
 
 1. **Clone the repository**
