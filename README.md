@@ -1,6 +1,6 @@
 # Copilot Studio Web Chat Client with a Custom UI
 
-This is a web application that embeds a Microsoft Copilot Studio agent using the [Microsoft 365 Agents SDK](https://learn.microsoft.com/en-us/microsoft-365/agents-sdk/), specifically the [Copilot Studio Client](https://github.com/microsoft/Agents-for-net/tree/main/src/libraries/Client/Microsoft.Agents.CopilotStudio.Client). I posted this to LinkedIn [here](https://www.linkedin.com/posts/andreas-adner-70b1153_copilot-studio-agent-with-a-custom-ui-activity-7369826563938398208-XXS7?utm_source=share&utm_medium=member_desktop&rcm=ACoAAACM8rsBEgQIrYgb4NZAbnxwfDRk_Tu5e3w).
+This is a web application that embeds a Microsoft Copilot Studio agent using the [Microsoft 365 Agents SDK](https://learn.microsoft.com/en-us/microsoft-365/agents-sdk/), specifically the [Copilot Studio Client](https://github.com/microsoft/Agents-for-net/tree/main/src/libraries/Client/Microsoft.Agents.CopilotStudio.Client). I posted this to LinkedIn [here](https://www.linkedin.com/posts/andreas-adner-70b1153_copilot-studio-agent-with-a-custom-ui-activity-7369826563938398208-XXS7?utm_source=share&utm_medium=member_desktop&rcm=ACoAAACM8rsBEgQIrYgb4NZAbnxwfDRk_Tu5e3w), and in a [video on YouTube](https://youtu.be/6B60HVbnHmw).
 
 ## Overview
 
